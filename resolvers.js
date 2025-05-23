@@ -59,13 +59,13 @@ const resolvers = {
     // for creation, updation or removal
     Mutation: {
         createUser: async (_, reqObj) => {
+            const session = driver.session();
             try {
                 const { error } = createUserValidation(reqObj);
                 if (error) {
                     throw new Error(error.details[0].message || 'Validation failed!!');
                 }
 
-                const session = driver.session();
                 const userId = Date.now().toString();
 
                 const result = await session.run(
@@ -100,7 +100,44 @@ const resolvers = {
                 session.close();
             }
         },
-        updateUser: async (_, reqObj) => { }
+
+        updateUser: async (_, reqObj) => { },
+
+        deleteUser: async (_, { id }) => {
+            const session = driver.session();
+            try {
+                const checkResult = await session.run('MATCH (u:User {id: $id}) RETURN u', { id });
+
+                if (!checkResult.records[0]) {
+                    const error = new Error('User not found or does not exist');
+                    error.extensions = { code: 'USER_NOT_FOUND' };
+                    throw error;
+                }
+
+                const result = await session.run(
+                    'MATCH (u:User {id: $id}) DETACH DELETE u RETURN COUNT(u) AS count',
+                    { id }
+                );
+
+                const deletedCount = result.records[0].get('count').toNumber();
+                if (deletedCount === 0) {
+                    const error = new Error('User not found or does not exist');
+                    error.extensions = { code: 'USER_NOT_FOUND' };
+                    throw error;
+                }
+                return true;
+            } catch (err) {
+                console.log('@@@Error while removing the user', err);
+
+                if (err.extensions?.code === 'USER_NOT_FOUND') {
+                    throw err;
+                }
+
+                throw new Error(`Unable to remove user: ${err.message}`);
+            } finally {
+                session.close();
+            }
+        }
     }
 };
 
