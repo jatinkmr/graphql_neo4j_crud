@@ -15,9 +15,14 @@ const typeDefs = `
         user: User!
     }
 
+    input UpdateUserInput {
+        name: String
+        age: Int
+    }
+
     type Mutation {
         createUser(name: String!, age: Int!): CreateUserResponse
-        updateUser(id: ID!, name: String, age: Int): User
+        updateUser(id: ID!, input: UpdateUserInput!): User
         deleteUser(id: ID!): Boolean
     }
 `;

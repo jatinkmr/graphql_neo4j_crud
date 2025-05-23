@@ -101,7 +101,93 @@ const resolvers = {
             }
         },
 
-        updateUser: async (_, reqObj) => { },
+        updateUser: async (_, { id, input }) => {
+            console.log('id, input', id, input);
+            const { age, name } = input;
+            const session = driver.session();
+
+            try {
+                // Check if user exists first
+                const checkResult = await session.run('MATCH (u:User {id: $id}) RETURN u', { id });
+
+                if (!checkResult.records[0]) {
+                    const error = new Error('User not found or does not exist');
+                    error.extensions = { code: 'USER_NOT_FOUND' };
+                    throw error;
+                }
+
+                // Validate and prepare updates
+                const updates = {};
+                let hasValidUpdates = false;
+
+                // Validate name
+                if (name !== undefined && name !== null) {
+                    const trimmedName = String(name).trim();
+                    if (trimmedName === '') {
+                        throw new Error('Name cannot be empty');
+                    }
+                    updates.name = trimmedName;
+                    hasValidUpdates = true;
+                }
+
+                // Validate age
+                if (age !== undefined && age !== null) {
+                    // Handle both string and number inputs
+                    let ageValue;
+                    if (typeof age === 'string') {
+                        ageValue = parseInt(age, 10);
+                    } else if (typeof age === 'number') {
+                        ageValue = Math.floor(age); // Ensure it's an integer
+                    } else {
+                        throw new Error('Age must be a valid number');
+                    }
+
+                    if (isNaN(ageValue) || ageValue < 0) {
+                        throw new Error('Age must be a valid positive number');
+                    }
+
+                    updates.age = neo4j.int(ageValue);
+                    hasValidUpdates = true;
+                    console.log('Age being set to:', ageValue, 'Neo4j int:', updates.age);
+                }
+
+                if (!hasValidUpdates) {
+                    throw new Error('At least one field (name or age) must be provided and cannot be empty');
+                }
+
+                // Build dynamic query
+                const setFields = Object.keys(updates).map(key => `u.${key} = $${key}`).join(', ');
+                const query = `MATCH (u:User {id: $id}) SET ${setFields} RETURN u`;
+
+                const params = { id, ...updates };
+                const result = await session.run(query, params);
+
+                if (!result.records[0]) {
+                    throw new Error('Failed to update user');
+                }
+
+                const userNode = result.records[0].get('u').properties;
+
+                // Return user with proper age conversion
+                return {
+                    id: userNode.id,
+                    name: userNode.name,
+                    age: neo4j.isInt(userNode.age) ? userNode.age.toNumber() : userNode.age
+                };
+
+            } catch (err) {
+                console.log('@@@Error while updating user', err);
+
+                // Handle custom errors with extensions
+                if (err.extensions?.code === 'USER_NOT_FOUND') {
+                    throw err;
+                }
+
+                throw new Error(err.message);
+            } finally {
+                session.close();
+            }
+        },
 
         deleteUser: async (_, { id }) => {
             const session = driver.session();
