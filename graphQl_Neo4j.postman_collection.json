@@ -1,0 +1,168 @@
+{
+	"info": {
+		"_postman_id": "4243e7b8-b43a-4834-ba73-44bcde0df9d7",
+		"name": "graphQl_Neo4j",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34726922"
+	},
+	"item": [
+		{
+			"name": "user creation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation { createUser(name: \\\"Jatin\\\", age: 29) { message user { id name age } } }\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Generated from cURL: curl -X POST http://localhost:4000/graphql \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"query\": \"mutation { createUser(name: \\\"Alice\\\", age: 30) { id name age } }\"\n  }'"
+			},
+			"response": []
+		},
+		{
+			"name": "fetch user list",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query { getUsers(limit: 5, offset: 0) { id name age } }\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:4000/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user by id",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query { getUser(id: \\\"1748003797716\\\") { id name age } }\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user removal",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation { deleteUser(id: \\\"1748003333948\\\") }\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation UpdateUser($id: ID!, $input: UpdateUserInput!) { updateUser(id: $id, input: $input) { id name age } }\",\n  \"variables\": {\n    \"id\": \"1748003797716\",\n    \"input\": {\n      \"name\": \"Jatin Kumar\",\n      \"age\": 29\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4000/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Generated from cURL: curl -X POST http://localhost:4000/graphql \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"query\": \"mutation UpdateUser($id: ID!, $name: String) { updateUser(id: $id, name: $name) { id name age } }\",\n    \"variables\": {\n      \"id\": \"123\",\n      \"name\": \"John Doe\"\n    }\n  }'"
+			},
+			"response": []
+		}
+	]
+}
